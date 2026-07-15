@@ -45,6 +45,13 @@ namespace InventoryManager.Services
             return true;
         }
 
+        public Product? GetProduct(int pid)
+        {
+            var product = _products.FirstOrDefault(p => p.Id == pid);
+            return product;
+            
+        }
+
         public bool ProcessTransaction(int productId, TransactionType type, int quantity)
         {
             if (quantity <= 0)
