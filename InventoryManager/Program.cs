@@ -8,83 +8,120 @@ namespace InventoryManager
         public static void Main()
         {
 
-
+            // Create a inventroy service object
             var service = new InventoryService();
-
+            // track the running state of the program
             var active = true ;
 
             Console.Clear();
 
+            // displayes the app title
             Console.WriteLine("Inventory Manager v1.0");
             Console.WriteLine(new String('-',50) );
-            Console.WriteLine("Products:");
-            foreach (var product in service.GetProducts())
-            {
-                Console.WriteLine($"- {product.Id}: {product.Name}, Qty: {product.Quantity}, Price: {product.Price}");
+            
+            // Displayes the Existed Products if any
+            if (service.GetProducts().Count > 0 )
+            { 
+                Console.WriteLine("Products:");
+                foreach (var product in service.GetProducts() )
+                {
+                    Console.WriteLine($"- {product.Id}: {product.Name}, Qty: {product.Quantity}, Price: {product.Price}");
+                }
             }
-            
-            
-            while(active){    
-                Console.Write(">>");
+
+
+            // Main app loop
+            while(active){
+
+                // Take input from user
+                Console.Write("Enter Command :");
                 var input = Console.ReadLine();
 
+                // Parse input and match the command
                 (string verb, string payload) = CommandParser.Parse(input);
 
                 var args = payload.Split(' ').ToArray();
 
-                
+                // decide what each command doe
                 switch (verb)
                 {
                     case "restock":{
-
-                        if ( !int.TryParse( args.ElementAtOrDefault(0) ,out int pid) ) 
+                        // take product id and Quantity from user and then validate them.
+                        Console.Write(" Product ID :");
+                        if ( !int.TryParse(  Console.ReadLine() , out int pid ) )
                             {
-                                Console.WriteLine(" invalid Arguments ! ");
+                                Console.WriteLine(" invalid Id ! ");
                                 continue;
                             }
-                        if ( service.GetProduct(pid) == null)
+
+                        if ( service.GetProduct(pid) != null )
+                            {
+                                var product = service.GetProduct(pid)! ;
+                                Console.WriteLine($" Product : { product.Name } - Price :{product.Price} ");
+                            }
+                        else
                             {
                                 Console.WriteLine(" Product not exist ! ");
-                                continue ;
+                                continue;
                             }
-                        
+
+                        Console.Write(" Product Quantity :");
+                        if ( !int.TryParse(  Console.ReadLine() , out int pQty ) || pQty < 0 )
+                            {
+                                Console.WriteLine(" invalid Quantity ! ");
+                                continue;
+                            }
+
                         bool restocked = service.ProcessTransaction (
 
-                            Int32.Parse( args.ElementAtOrDefault(0) ?? "" ) ,
+                            pid ,
                             TransactionType.Restock ,
-                            Int32.Parse( args.ElementAtOrDefault(1) ?? "0") 
-                            // args.ElementAtOrDefault(0) ?? "" ,
-                            // (ProductCategory) Int32.Parse( args.ElementAtOrDefault(1) ?? "0") ,
-                            // Int32.Parse( args.ElementAtOrDefault(1) ?? "0") ,
-                            // Int32.Parse( args.ElementAtOrDefault(1) ?? "0") 
+                            pQty
+
                         );
-                        Console.WriteLine("Product Restocked : " + restocked);
+
+                        Console.WriteLine(restocked ? "Product Restocked. " : "Restock Failed." );
                         break;
+
                     }
+
                     case "sell":{
 
-                        if ( 
-                            !int.TryParse( args.ElementAtOrDefault(0) ,out int pid) ||
-                            !int.TryParse( args.ElementAtOrDefault(0) ,out int qty)
-                         ) 
+                        Console.Write(" Product ID :");
+                        if ( !int.TryParse(  Console.ReadLine() , out int pid ) )
                             {
-                                Console.WriteLine(" invalid Arguments ! ");
+                                Console.WriteLine(" invalid Id ! ");
                                 continue;
                             }
-                        if ( service.GetProduct(pid) == null )
+
+                        if ( service.GetProduct(pid) != null )
+                            {
+                                var product = service.GetProduct(pid)! ;
+                                Console.WriteLine($" Product : { product.Name } - Price :{product.Price} ");
+                            }
+                        else
                             {
                                 Console.WriteLine(" Product not exist ! ");
-                                continue; 
+                                continue;
                             }
-                        
+
+                        Console.Write(" Product Quantity :");
+                        if ( !int.TryParse(  Console.ReadLine() , out int pQty ) || pQty < 0 )
+                            {
+                                Console.WriteLine(" invalid Quantity ! ");
+                                continue;
+                            }
+
                         bool sold = service.ProcessTransaction(
-                            Int32.Parse( args.ElementAtOrDefault(0) ?? "" ) ,
+                            pid,
                             TransactionType.Sell,
-                            Int32.Parse( args.ElementAtOrDefault(1) ?? "0") 
+                            pQty
                         );
-                        Console.WriteLine("Sell: " + sold);
+                        Console.WriteLine(sold ? "Product Sold." : "Selling Failed");
                         break;
+
                     }
+
                     case "transactions":{
                         Console.WriteLine("Transactions:");
                         foreach (var transaction in service.GetTransactions())
@@ -101,16 +138,53 @@ namespace InventoryManager
                         }
                         break;
                     }
-                    // case "add":{
-                    //     bool added = service.AddProduct(
-                    //         "Laptop",
-                    //         ProductCategory.Electronics,
-                    //         5,
-                    //         999.99m
-                    //     );
-                    //     Console.WriteLine("AddProduct: " + added);
-                    //     break;
-                    // }
+                    case "add":{
+                        Console.Write("Product Name :");
+                        var pName = Console.ReadLine()!;
+                        if (string.IsNullOrEmpty( pName.Trim() ))
+                            {
+                                Console.WriteLine("Name can't be Empty");
+                            }
+
+                        Console.WriteLine("Product Categories:");
+                        for (int i = 0; i < Enum.GetNames<ProductCategory>().Length ; i++ )
+                        {
+                            Console.WriteLine($" {i+1} ] { Enum.GetName<ProductCategory>( (ProductCategory) i) }");
+                        }
+
+                        Console.Write("Category ID:");
+                        // var Category = Console.ReadLine();
+                        if ( !int.TryParse(  Console.ReadLine() , out int CategoryId ) || CategoryId < 0 )
+                            {
+                                Console.WriteLine(" invalid Id ! ");
+                                continue;
+                            }
+
+                        Console.Write("Product Initial Quantity:");
+                        if ( !int.TryParse(  Console.ReadLine() , out int pQty ) || pQty < 0 )
+                            {
+                                Console.WriteLine(" invalid Quantity ! ");
+                                continue;
+                            }
+
+                        Console.Write("Product Price :");
+                        if ( !Decimal.TryParse(  Console.ReadLine() , out Decimal pPrice ) || pPrice < 0 )
+                            {
+                                Console.WriteLine(" invalid Quantity ! ");
+                                continue;
+                            }
+
+
+                        bool added = service.AddProduct(
+                            pName,
+                            (ProductCategory) CategoryId,
+                            pQty,
+                            pPrice
+                        );
+                        Console.WriteLine(added ? "Product Added" : "Adding Failed" );
+                        break;
+
+                    }
                     case "exit":
                         {
                             active = false;
@@ -121,52 +195,33 @@ namespace InventoryManager
                             Console.WriteLine("Invalid Command !");
                             break;
                         }
-                    
+
                 }
             }
-            // bool added = service.AddProduct("Laptop", ProductCategory.Electronics, 5, 999.99m);
-            // Console.WriteLine("AddProduct: " + added);
 
-            // bool restocked = service.ProcessTransaction(1, TransactionType.Restock, 3);
-            // Console.WriteLine("Restock: " + restocked);
-
-            // bool sold = service.ProcessTransaction(1, TransactionType.Sell, 2);
-            // Console.WriteLine("Sell: " + sold);
-
-            // Console.WriteLine("Products:");
-            // foreach (var product in service.GetProducts())
-            // {
-            //     Console.WriteLine($"- {product.Id}: {product.Name}, Qty: {product.Quantity}, Price: {product.Price}");
-            // }
-
-            // Console.WriteLine("Transactions:");
-            // foreach (var transaction in service.GetTransactions())
-            // {
-            //     Console.WriteLine($"- {transaction.Id}: {transaction.Type}, Qty: {transaction.QuantityChanged}");
-            // }
-            // Mental Thinking : 
-            // 
-            // Restock 
-            // - check if product exisits => increase quantity 
+            // Mental Thinking :
+            //
+            // Restock
+            // - check if product exisits => increase quantity
             // - if not create new product and assign its quantity
-            // - then create a (restock) transaction 
-            // - add this transaction to history  with text 
-            // 
-            // sell 
-            // - check if product isn't 0 and exisit in stock 
+            // - then create a (restock) transaction
+            // - add this transaction to history  with text
+            //
+            // sell
+            // - check if product isn't 0 and exisit in stock
             // - if so :
-            // -  create a (sell) transaction 
-            // - add this transaction to history  with text 
-            // 
+            // -  create a (sell) transaction
+            // - add this transaction to history  with text
+            //
             //
             // Approach :
-            // 
+            //
             // data models : Product(id,name,cat,qty...) | Transacation(type,description)
-            // 
-            // services : 
+            //
+            // services :
             // - stockservice( ) handels creating, modifing,delelting products
-            // - 
-            // 
+            // -
+            //
             Console.ReadKey();
         }
     }
