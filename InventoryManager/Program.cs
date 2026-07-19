@@ -1,5 +1,6 @@
 ﻿using System;
 using InventoryManager.Services;
+using Microsoft.VisualBasic;
 
 namespace InventoryManager
 {
@@ -28,6 +29,10 @@ namespace InventoryManager
                     Console.WriteLine($"- {product.Id}: {product.Name}, Qty: {product.Quantity}, Price: {product.Price}");
                 }
             }
+            else
+            {
+                Console.WriteLine("   No Products yet !");
+            }
 
 
             // Main app loop
@@ -35,15 +40,10 @@ namespace InventoryManager
 
                 // Take input from user
                 Console.Write("Enter Command :");
-                var input = Console.ReadLine();
-
-                // Parse input and match the command
-                (string verb, string payload) = CommandParser.Parse(input);
-
-                var args = payload.Split(' ').ToArray();
+                var input = Console.ReadLine() ?? "Empty";
 
                 // decide what each command doe
-                switch (verb)
+                switch ( input.Trim() )
                 {
                     case "restock":{
                         // take product id and Quantity from user and then validate them.
@@ -129,8 +129,10 @@ namespace InventoryManager
                             Console.WriteLine($"- {transaction.Id}: {transaction.Type}, Qty: {transaction.QuantityChanged}");
                         }
                         break;
+
                     }
                     case "products":{
+
                         Console.WriteLine("Products:");
                         foreach (var product in service.GetProducts())
                         {
@@ -138,6 +140,7 @@ namespace InventoryManager
                         }
                         break;
                     }
+
                     case "add":{
                         Console.Write("Product Name :");
                         var pName = Console.ReadLine()!;
@@ -185,6 +188,29 @@ namespace InventoryManager
                         break;
 
                     }
+
+
+                    case "delete":
+                        {
+                            Console.Write(" Product ID :");
+                            if ( !int.TryParse(  Console.ReadLine() , out int pid ) )
+                                {
+                                    Console.WriteLine(" invalid Id ! ");
+                                    continue;
+                                }
+
+                            if ( service.DeleteProduct(pid) )
+                                {
+                                    Console.WriteLine($" Product Deleted ...");
+                                }
+                            else
+                                {
+                                    Console.WriteLine(" Product not exist ! ");
+                                    continue;
+                                }
+                            break;
+                        }
+                    
                     case "exit":
                         {
                             active = false;
@@ -198,6 +224,26 @@ namespace InventoryManager
 
                 }
             }
+        }
+
+
+        private bool IsValidObject( VariantType? obj )
+        {
+            if (obj == null)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        private bool IsValidIntId ( string id, int min )
+        {
+            if ( !int.TryParse( id, out int result) || result < min )
+            {
+                return false;
+            }
+            return true;
+        }
 
             // Mental Thinking :
             //
@@ -222,7 +268,7 @@ namespace InventoryManager
             // - stockservice( ) handels creating, modifing,delelting products
             // -
             //
-            Console.ReadKey();
-        }
+            // Console.ReadKey();
+        
     }
 }

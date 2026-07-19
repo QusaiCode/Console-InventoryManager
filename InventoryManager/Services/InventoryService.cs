@@ -51,6 +51,16 @@ namespace InventoryManager.Services
             return product;
             
         }
+        public bool DeleteProduct(int pid)
+        {
+            if (_products.ElementAtOrDefault(pid) != null )
+            {
+                _products.RemoveAt(pid);
+                return true;
+            }
+            return false;
+            
+        }
 
         public bool ProcessTransaction(int productId, TransactionType type, int quantity)
         {
