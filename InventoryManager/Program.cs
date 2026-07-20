@@ -1,6 +1,5 @@
-﻿using System;
+﻿
 using InventoryManager.Services;
-using Microsoft.VisualBasic;
 
 namespace InventoryManager
 {
@@ -11,28 +10,30 @@ namespace InventoryManager
 
             // Create a inventroy service object
             var service = new InventoryService();
+            
             // track the running state of the program
             var active = true ;
 
-            Console.Clear();
-
-            // displayes the app title
-            Console.WriteLine("Inventory Manager v1.0");
-            Console.WriteLine(new String('-',50) );
             
-            // Displayes the Existed Products if any
-            if (service.GetProducts().Count > 0 )
-            { 
-                Console.WriteLine("Products:");
-                foreach (var product in service.GetProducts() )
-                {
-                    Console.WriteLine($"- {product.Id}: {product.Name}, Qty: {product.Quantity}, Price: {product.Price}");
-                }
-            }
-            else
-            {
-                Console.WriteLine("   No Products yet !");
-            }
+            // displayes the app title
+            // Console.WriteLine("Inventory Manager v1.0");
+            // Console.WriteLine(new String('-',50) );
+            
+            // // Displayes the Existed Products if any
+            // if (service.GetProducts().Count > 0 )
+            // { 
+            //     Console.WriteLine("Products:");
+            //     foreach (var product in service.GetProducts() )
+            //     {
+            //         Console.WriteLine($"- {product.Id}: {product.Name}, Qty: {product.Quantity}, Price: {product.Price}");
+            //     }
+            // }
+            // else
+            // {
+            //     Console.WriteLine("   No Products yet !");
+            // }
+            // Replaced by Renderer Function
+            Renderer.RenderProducts( service.GetProducts() );
 
 
             // Main app loop
@@ -42,7 +43,7 @@ namespace InventoryManager
                 Console.Write("Enter Command :");
                 var input = Console.ReadLine() ?? "Empty";
 
-                // decide what each command doe
+                // decide what each command do
                 switch ( input.Trim() )
                 {
                     case "restock":{
@@ -57,7 +58,7 @@ namespace InventoryManager
                         if ( service.GetProduct(pid) != null )
                             {
                                 var product = service.GetProduct(pid)! ;
-                                Console.WriteLine($" Product : { product.Name } - Price :{product.Price} ");
+                                Console.WriteLine($" ID : {product.Id} - NAME : { product.Name } - QUANTITY : {product.Quantity} - Price :{product.Price} ");
                             }
                         else
                             {
@@ -65,7 +66,7 @@ namespace InventoryManager
                                 continue;
                             }
 
-                        Console.Write(" Product Quantity :");
+                        Console.Write(" Add Quantity :");
                         if ( !int.TryParse(  Console.ReadLine() , out int pQty ) || pQty < 0 )
                             {
                                 Console.WriteLine(" invalid Quantity ! ");
@@ -79,8 +80,12 @@ namespace InventoryManager
                             pQty
 
                         );
+                        
+                        Renderer.RenderProducts(
+                            service.GetProducts() ,
+                            restocked ? "Product Restocked. " : "Restock Failed."
+                        );
 
-                        Console.WriteLine(restocked ? "Product Restocked. " : "Restock Failed." );
                         break;
 
                     }
@@ -97,7 +102,7 @@ namespace InventoryManager
                         if ( service.GetProduct(pid) != null )
                             {
                                 var product = service.GetProduct(pid)! ;
-                                Console.WriteLine($" Product : { product.Name } - Price :{product.Price} ");
+                                Console.WriteLine($" ID : {product.Id} - NAME : { product.Name } - QUANTITY : {product.Quantity} - Price :{product.Price} ");
                             }
                         else
                             {
@@ -117,27 +122,29 @@ namespace InventoryManager
                             TransactionType.Sell,
                             pQty
                         );
-                        Console.WriteLine(sold ? "Product Sold." : "Selling Failed");
+
+                        // Console.WriteLine(sold ? "Product Sold." : "Selling Failed");
+                        Renderer.RenderProducts(
+                            service.GetProducts(),
+                            sold ? "Product Sold. " : "Selling Failed."
+                        );
+
                         break;
 
                     }
 
                     case "transactions":{
-                        Console.WriteLine("Transactions:");
-                        foreach (var transaction in service.GetTransactions())
-                        {
-                            Console.WriteLine($"- {transaction.Id}: {transaction.Type}, Qty: {transaction.QuantityChanged}");
-                        }
+                        Renderer.RenderTransactions(
+                            service.GetTransactions()
+                        );
                         break;
 
                     }
                     case "products":{
 
-                        Console.WriteLine("Products:");
-                        foreach (var product in service.GetProducts())
-                        {
-                            Console.WriteLine($"- {product.Id}: {product.Name}, Qty: {product.Quantity}, Price: {product.Price}");
-                        }
+                        Renderer.RenderProducts(
+                            service.GetProducts()
+                        );
                         break;
                     }
 
@@ -184,7 +191,13 @@ namespace InventoryManager
                             pQty,
                             pPrice
                         );
-                        Console.WriteLine(added ? "Product Added" : "Adding Failed" );
+
+                        Renderer.RenderProducts(
+                            service.GetProducts(),
+                            added ? "Product Added" : "Adding Failed" 
+
+                        );
+
                         break;
 
                     }
@@ -199,15 +212,13 @@ namespace InventoryManager
                                     continue;
                                 }
 
-                            if ( service.DeleteProduct(pid) )
-                                {
-                                    Console.WriteLine($" Product Deleted ...");
-                                }
-                            else
-                                {
-                                    Console.WriteLine(" Product not exist ! ");
-                                    continue;
-                                }
+                            var deleted = service.DeleteProduct(pid);
+                            
+                            Renderer.RenderProducts(
+                                service.GetProducts(),
+                                deleted ? "Product Deleted" : "Product not exist !" 
+
+                            );
                             break;
                         }
                     
@@ -227,9 +238,9 @@ namespace InventoryManager
         }
 
 
-        private bool IsValidObject( VariantType? obj )
+        private bool IsValidOProduct(Product p )
         {
-            if (obj == null)
+            if (p == null)
             {
                 return false;
             }

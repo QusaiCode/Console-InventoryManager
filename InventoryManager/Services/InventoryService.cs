@@ -11,14 +11,14 @@ namespace InventoryManager.Services
         private int _productIdSeed = 1;
         private int _transactionIdSeed = 1;
 
-        public IReadOnlyList<Product> GetProducts()
+        public List<Product> GetProducts()
         {
-            return _products.ToList();
+            return _products;
         }
 
-        public IReadOnlyList<Transaction> GetTransactions()
+        public List<Transaction> GetTransactions()
         {
-            return _transactions.ToList();
+            return _transactions;
         }
 
         public bool AddProduct(string name, ProductCategory category, int quantity, decimal price)
@@ -53,7 +53,7 @@ namespace InventoryManager.Services
         }
         public bool DeleteProduct(int pid)
         {
-            if (_products.ElementAtOrDefault(pid) != null )
+            if (_products.FirstOrDefault(p => p.Id == pid) != null )
             {
                 _products.RemoveAt(pid);
                 return true;
