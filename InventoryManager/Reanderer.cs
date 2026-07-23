@@ -13,7 +13,7 @@ namespace InventoryManager
             Console.WriteLine("--------------------------------------");
             Console.WriteLine("  Products ");
             Console.WriteLine("--------------------------------------");
-            Console.WriteLine($"  {"ID",5}    {"NAME",10}     {"PRICE",15}   ");
+            Console.WriteLine($"{"ID",5}{"NAME",10}{"PRICE",15}   ");
             Console.WriteLine("--------------------------------------");
             
             if ( products.Count > 0)

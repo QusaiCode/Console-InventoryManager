@@ -10,18 +10,18 @@ namespace InventoryManager
 
             // Create a inventroy service object
             var service = new InventoryService();
-            
+
             // track the running state of the program
             var active = true ;
 
-            
+
             // displayes the app title
             // Console.WriteLine("Inventory Manager v1.0");
             // Console.WriteLine(new String('-',50) );
-            
+
             // // Displayes the Existed Products if any
             // if (service.GetProducts().Count > 0 )
-            // { 
+            // {
             //     Console.WriteLine("Products:");
             //     foreach (var product in service.GetProducts() )
             //     {
@@ -49,22 +49,37 @@ namespace InventoryManager
                     case "restock":{
                         // take product id and Quantity from user and then validate them.
                         Console.Write(" Product ID :");
-                        if ( !int.TryParse(  Console.ReadLine() , out int pid ) )
+
+                        if( ! TryParseId( Console.ReadLine()!, out int pid, out string idMsg ))
                             {
-                                Console.WriteLine(" invalid Id ! ");
+                                
                                 continue;
                             }
 
-                        if ( service.GetProduct(pid) != null )
+                        // if ( !int.TryParse(  Console.ReadLine() , out int pid ) )
+                        //     {
+                        //         Console.WriteLine(" invalid Id ! ");
+                        //         continue;
+                        //     }
+                        if ( TryGetProduct(service, pid, out Product product ,out string productMsg))
                             {
-                                var product = service.GetProduct(pid)! ;
                                 Console.WriteLine($" ID : {product.Id} - NAME : { product.Name } - QUANTITY : {product.Quantity} - Price :{product.Price} ");
                             }
-                        else
+                            else
                             {
-                                Console.WriteLine(" Product not exist ! ");
                                 continue;
                             }
+
+                        // if ( service.GetProduct(pid) != null )
+                        //     {
+                        //         // var product = service.GetProduct(pid)! ;
+                        //         // Console.WriteLine($" ID : {product.Id} - NAME : { product.Name } - QUANTITY : {product.Quantity} - Price :{product.Price} ");
+                        //     }
+                        // else
+                        //     {
+                        //         Console.WriteLine(" Product not exist ! ");
+                        //         continue;
+                        //     }
 
                         Console.Write(" Add Quantity :");
                         if ( !int.TryParse(  Console.ReadLine() , out int pQty ) || pQty < 0 )
@@ -80,7 +95,7 @@ namespace InventoryManager
                             pQty
 
                         );
-                        
+
                         Renderer.RenderProducts(
                             service.GetProducts() ,
                             restocked ? "Product Restocked. " : "Restock Failed."
@@ -93,20 +108,20 @@ namespace InventoryManager
                     case "sell":{
 
                         Console.Write(" Product ID :");
-                        if ( !int.TryParse(  Console.ReadLine() , out int pid ) )
+                        if( ! TryParseId( Console.ReadLine()!, out int pid, out string idMsg ))
                             {
-                                Console.WriteLine(" invalid Id ! ");
+                                //TODO: Make Renderer Show Error idMsg
                                 continue;
                             }
 
-                        if ( service.GetProduct(pid) != null )
+                        if ( TryGetProduct(service, pid, out Product product ,out string productMsg))
                             {
-                                var product = service.GetProduct(pid)! ;
+                                //TODO: Make renderer Show Selected Product
                                 Console.WriteLine($" ID : {product.Id} - NAME : { product.Name } - QUANTITY : {product.Quantity} - Price :{product.Price} ");
                             }
-                        else
+                            else
                             {
-                                Console.WriteLine(" Product not exist ! ");
+                                //TODO: Make renderer Show Erorr productMsg
                                 continue;
                             }
 
@@ -206,14 +221,13 @@ namespace InventoryManager
                     case "delete":
                         {
                             Console.Write(" Product ID :");
-                            if ( !int.TryParse(  Console.ReadLine() , out int pid ) )
-                                {
-                                    Console.WriteLine(" invalid Id ! ");
-                                    continue;
-                                }
+                            if( ! TryParseId( Console.ReadLine()!, out int pid, out string idMsg ))
+                            {
+                                continue;
+                            }
 
                             var deleted = service.DeleteProduct(pid);
-                            
+
                             Renderer.RenderProducts(
                                 service.GetProducts(),
                                 deleted ? "Product Deleted" : "Product not exist !" 
@@ -221,7 +235,7 @@ namespace InventoryManager
                             );
                             break;
                         }
-                    
+
                     case "exit":
                         {
                             active = false;
@@ -238,21 +252,29 @@ namespace InventoryManager
         }
 
 
-        private bool IsValidOProduct(Product p )
-        {
-            if (p == null)
+        private static bool TryGetProduct(InventoryService service, int id, out Product product, out string msg )
+        {   
+            if (service.GetProduct(id) == null )
             {
+                msg = $"No Product Found With ID {id}";
+                product = null!;
                 return false;
             }
+            product = service.GetProduct(id)!;
+            msg = "Product Exists !";
             return true;
         }
 
-        private bool IsValidIntId ( string id, int min )
+        private static bool TryParseId ( string input, out int id, out string msg, int min = 0)
         {
-            if ( !int.TryParse( id, out int result) || result < min )
+            if ( !int.TryParse(input, out int result) || result < min )
             {
+                msg = "Invalid Input. Please enter Posetive Number !";
+                id = 0;
                 return false;
             }
+            id = result;
+            msg = "";
             return true;
         }
 
@@ -280,6 +302,5 @@ namespace InventoryManager
             // -
             //
             // Console.ReadKey();
-        
     }
 }

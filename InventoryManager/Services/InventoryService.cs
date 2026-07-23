@@ -53,9 +53,10 @@ namespace InventoryManager.Services
         }
         public bool DeleteProduct(int pid)
         {
-            if (_products.FirstOrDefault(p => p.Id == pid) != null )
+            Product product = _products.FirstOrDefault(p => p.Id == pid)!;
+            if (product != null )
             {
-                _products.RemoveAt(pid);
+                _products.Remove(product);
                 return true;
             }
             return false;
