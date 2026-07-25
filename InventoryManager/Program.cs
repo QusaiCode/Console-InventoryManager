@@ -8,31 +8,13 @@ namespace InventoryManager
         public static void Main()
         {
 
-            // Create a inventroy service object
+            // Inventroy service instance ot the program
             var service = new InventoryService();
 
-            // track the running state of the program
+            // Track the running state of the program
             var active = true ;
 
-
-            // displayes the app title
-            // Console.WriteLine("Inventory Manager v1.0");
-            // Console.WriteLine(new String('-',50) );
-
-            // // Displayes the Existed Products if any
-            // if (service.GetProducts().Count > 0 )
-            // {
-            //     Console.WriteLine("Products:");
-            //     foreach (var product in service.GetProducts() )
-            //     {
-            //         Console.WriteLine($"- {product.Id}: {product.Name}, Qty: {product.Quantity}, Price: {product.Price}");
-            //     }
-            // }
-            // else
-            // {
-            //     Console.WriteLine("   No Products yet !");
-            // }
-            // Replaced by Renderer Function
+            // Initial Render of Products
             Renderer.RenderProducts( service.GetProducts() );
 
 
@@ -41,10 +23,11 @@ namespace InventoryManager
 
                 // Take input from user
                 Console.Write("Enter Command :");
+                // User Raw Input as String
                 var input = Console.ReadLine() ?? "Empty";
 
                 // decide what each command do
-                switch ( input.Trim() )
+                switch ( input.Trim().ToLower() )
                 {
                     case "restock":{
                         // take product id and Quantity from user and then validate them.
@@ -52,39 +35,35 @@ namespace InventoryManager
 
                         if( ! TryParseId( Console.ReadLine()!, out int pid, out string idMsg ))
                             {
+                                Renderer.RenderMsg(idMsg);
+                                Console.ReadKey();
                                 
+                                Renderer.RenderProducts( service.GetProducts() );
                                 continue;
                             }
 
-                        // if ( !int.TryParse(  Console.ReadLine() , out int pid ) )
-                        //     {
-                        //         Console.WriteLine(" invalid Id ! ");
-                        //         continue;
-                        //     }
+                        Console.Clear();
+                        
+
                         if ( TryGetProduct(service, pid, out Product product ,out string productMsg))
                             {
-                                Console.WriteLine($" ID : {product.Id} - NAME : { product.Name } - QUANTITY : {product.Quantity} - Price :{product.Price} ");
+                                Renderer.RenderProduct(product);
                             }
                             else
                             {
+                                Renderer.RenderMsg(productMsg);
+                                Console.ReadKey();
+                                Renderer.RenderProducts( service.GetProducts() );
+
                                 continue;
                             }
-
-                        // if ( service.GetProduct(pid) != null )
-                        //     {
-                        //         // var product = service.GetProduct(pid)! ;
-                        //         // Console.WriteLine($" ID : {product.Id} - NAME : { product.Name } - QUANTITY : {product.Quantity} - Price :{product.Price} ");
-                        //     }
-                        // else
-                        //     {
-                        //         Console.WriteLine(" Product not exist ! ");
-                        //         continue;
-                        //     }
 
                         Console.Write(" Add Quantity :");
                         if ( !int.TryParse(  Console.ReadLine() , out int pQty ) || pQty < 0 )
                             {
-                                Console.WriteLine(" invalid Quantity ! ");
+                                Renderer.RenderMsg(" invalid Quantity ! ");
+                                Console.ReadKey();
+                                Renderer.RenderProducts( service.GetProducts() );
                                 continue;
                             }
 
@@ -106,29 +85,37 @@ namespace InventoryManager
                     }
 
                     case "sell":{
-
+                        
                         Console.Write(" Product ID :");
                         if( ! TryParseId( Console.ReadLine()!, out int pid, out string idMsg ))
                             {
-                                //TODO: Make Renderer Show Error idMsg
+                                
+                                Renderer.RenderMsg(idMsg);
+                                Console.ReadKey();
+                                Renderer.RenderProducts( service.GetProducts() );
                                 continue;
                             }
 
+                        Console.Clear();
+
                         if ( TryGetProduct(service, pid, out Product product ,out string productMsg))
                             {
-                                //TODO: Make renderer Show Selected Product
-                                Console.WriteLine($" ID : {product.Id} - NAME : { product.Name } - QUANTITY : {product.Quantity} - Price :{product.Price} ");
+                                Renderer.RenderProduct(product);
                             }
                             else
                             {
-                                //TODO: Make renderer Show Erorr productMsg
+                                Renderer.RenderMsg(productMsg);
+                                Console.ReadKey();
+                                Renderer.RenderProducts( service.GetProducts() );
                                 continue;
                             }
 
                         Console.Write(" Product Quantity :");
                         if ( !int.TryParse(  Console.ReadLine() , out int pQty ) || pQty < 0 )
                             {
-                                Console.WriteLine(" invalid Quantity ! ");
+                                Renderer.RenderMsg(" invalid Quantity ! ");
+                                Console.ReadKey();
+                                Renderer.RenderProducts( service.GetProducts() );
                                 continue;
                             }
 
@@ -164,11 +151,18 @@ namespace InventoryManager
                     }
 
                     case "add":{
+                        
+                        Console.Clear();
                         Console.Write("Product Name :");
                         var pName = Console.ReadLine()!;
+
                         if (string.IsNullOrEmpty( pName.Trim() ))
                             {
-                                Console.WriteLine("Name can't be Empty");
+                                
+                                Renderer.RenderMsg( "Name can't be Empty" );
+                                Console.ReadKey();
+                                Renderer.RenderProducts( service.GetProducts() );
+                                continue;
                             }
 
                         Console.WriteLine("Product Categories:");
@@ -178,24 +172,31 @@ namespace InventoryManager
                         }
 
                         Console.Write("Category ID:");
-                        // var Category = Console.ReadLine();
+
+                        // Category Id From Category Enum
                         if ( !int.TryParse(  Console.ReadLine() , out int CategoryId ) || CategoryId < 0 )
-                            {
-                                Console.WriteLine(" invalid Id ! ");
+                            {       
+                                Renderer.RenderMsg(  " invalid Id ! ");
+                                Console.ReadKey();
+                                Renderer.RenderProducts( service.GetProducts() );
                                 continue;
                             }
 
                         Console.Write("Product Initial Quantity:");
                         if ( !int.TryParse(  Console.ReadLine() , out int pQty ) || pQty < 0 )
                             {
-                                Console.WriteLine(" invalid Quantity ! ");
+                                Renderer.RenderMsg( " invalid Quantity ! " );
+                                Console.ReadKey();
+                                Renderer.RenderProducts( service.GetProducts() );
                                 continue;
                             }
 
                         Console.Write("Product Price :");
                         if ( !Decimal.TryParse(  Console.ReadLine() , out Decimal pPrice ) || pPrice < 0 )
-                            {
-                                Console.WriteLine(" invalid Quantity ! ");
+                            {                          
+                                Renderer.RenderMsg( " invalid Price ! " );
+                                Console.ReadKey();
+                                Renderer.RenderProducts( service.GetProducts() );
                                 continue;
                             }
 
@@ -223,6 +224,10 @@ namespace InventoryManager
                             Console.Write(" Product ID :");
                             if( ! TryParseId( Console.ReadLine()!, out int pid, out string idMsg ))
                             {
+                                                                
+                                Renderer.RenderMsg( idMsg );
+                                Console.ReadKey();
+                                Renderer.RenderProducts( service.GetProducts() );
                                 continue;
                             }
 
@@ -278,29 +283,5 @@ namespace InventoryManager
             return true;
         }
 
-            // Mental Thinking :
-            //
-            // Restock
-            // - check if product exisits => increase quantity
-            // - if not create new product and assign its quantity
-            // - then create a (restock) transaction
-            // - add this transaction to history  with text
-            //
-            // sell
-            // - check if product isn't 0 and exisit in stock
-            // - if so :
-            // -  create a (sell) transaction
-            // - add this transaction to history  with text
-            //
-            //
-            // Approach :
-            //
-            // data models : Product(id,name,cat,qty...) | Transacation(type,description)
-            //
-            // services :
-            // - stockservice( ) handels creating, modifing,delelting products
-            // -
-            //
-            // Console.ReadKey();
     }
 }
